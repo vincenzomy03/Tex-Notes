@@ -26,9 +26,18 @@ pub fn save_pdf(target_path: &str, base64_data: &str) -> Result<(), String> {
     fs::write(target_path, bytes).map_err(|e| format!("Failed to save PDF to '{}': {}", target_path, e))
 }
 
-/// Copy external media file into document's images directory
-pub fn copy_media_to_document_images(src_path_str: &str, doc_dir_str: &str) -> Result<String, String> {
-    let src_path = std::path::Path::new(src_path_str);
+use std::path::{Path, PathBuf};
+
+/// Helper to get the fallback session workspace directory for unsaved documents
+pub fn get_session_workspace_dir() -> PathBuf {
+    let dir = std::env::temp_dir().join("TexNotesWorkspace");
+    let _ = fs::create_dir_all(&dir);
+    dir
+}
+
+/// Copy external media file into document's images directory (or session workspace images directory if unsaved)
+pub fn copy_media_to_document_images(src_path_str: &str, doc_dir_str: Option<&str>) -> Result<String, String> {
+    let src_path = Path::new(src_path_str);
     let original_name = src_path
         .file_name()
         .ok_or_else(|| "Nome file media non valido".to_string())?
@@ -37,7 +46,12 @@ pub fn copy_media_to_document_images(src_path_str: &str, doc_dir_str: &str) -> R
     // Sanitize filename: replace spaces with underscores to prevent LaTeX graphicx parse errors
     let sanitized_name = original_name.replace(' ', "_");
 
-    let images_dir = std::path::Path::new(doc_dir_str).join("images");
+    let base_dir = match doc_dir_str {
+        Some(dir) if !dir.trim().is_empty() => PathBuf::from(dir),
+        _ => get_session_workspace_dir(),
+    };
+
+    let images_dir = base_dir.join("images");
     fs::create_dir_all(&images_dir).map_err(|e| format!("Impossibile creare la cartella 'images': {}", e))?;
 
     let dest_path = images_dir.join(&sanitized_name);

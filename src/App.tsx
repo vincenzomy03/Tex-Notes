@@ -179,20 +179,7 @@ export default function App() {
 
   const handleInsertMedia = async () => {
     try {
-      let currentPath = fileState.path;
-      // If file has never been saved, prompt to save first so images/ folder is created next to the document
-      if (!currentPath) {
-        const res = await saveDocument(null, content, fileState.name);
-        currentPath = res.path;
-        setFileState((prev) => ({
-          ...prev,
-          path: res.path,
-          name: res.name,
-          isDirty: false,
-        }));
-      }
-
-      const res = await insertMediaDialog(currentPath);
+      const res = await insertMediaDialog(fileState.path);
       if (res && editorRef.current) {
         // Auto-inject \usepackage{graphicx} if missing from preamble
         setContent((prev) => {

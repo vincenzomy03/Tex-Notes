@@ -168,13 +168,11 @@ export async function insertMediaDialog(
 
       let finalFileName: string = (selected.split(/[/\\]/).pop() || 'media.png').replace(/\s+/g, '_');
 
-      // If document is saved on disk, copy file directly to docDir/images/
-      if (docDir) {
-        finalFileName = await invoke<string>('copy_media_to_images', {
-          srcPath: selected,
-          docDir,
-        });
-      }
+      // Copy file directly to docDir/images/ (or to session workspace if doc is unsaved)
+      finalFileName = await invoke<string>('copy_media_to_images', {
+        srcPath: selected,
+        docDir: docDir || null,
+      });
 
       const cleanLabel = finalFileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
       const isPdf = finalFileName.toLowerCase().endsWith('.pdf');

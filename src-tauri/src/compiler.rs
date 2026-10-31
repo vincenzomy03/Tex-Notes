@@ -192,18 +192,11 @@ pub fn run_compilation(
 ) -> Result<CompileResponse, String> {
     let start_time = Instant::now();
 
-    // Choose temporary compile directory
-    let temp_dir_holder = if working_dir.is_none() {
-        Some(tempfile::Builder::new().prefix("texnotes_").tempdir().map_err(|e| e.to_string())?)
-    } else {
-        None
+    let compile_dir: PathBuf = match working_dir {
+        Some(dir) if !dir.trim().is_empty() => PathBuf::from(dir),
+        _ => crate::file_ops::get_session_workspace_dir(),
     };
-
-    let compile_dir: PathBuf = if let Some(ref dir) = working_dir {
-        PathBuf::from(dir)
-    } else {
-        temp_dir_holder.as_ref().unwrap().path().to_path_buf()
-    };
+    let _ = fs::create_dir_all(&compile_dir);
 
     let tex_file_path = compile_dir.join("_texnotes_main.tex");
     let pdf_file_path = compile_dir.join("_texnotes_main.pdf");
