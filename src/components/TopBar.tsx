@@ -189,7 +189,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <span>
             {updateInfo?.available
               ? `Update v${updateInfo.latestVersion}`
-              : `v${updateInfo?.currentVersion || '1.0.3'}`}
+              : `v${updateInfo?.currentVersion || '1.0.4'}`}
           </span>
         </button>
 

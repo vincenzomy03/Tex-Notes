@@ -1,6 +1,6 @@
 [package]
 name = "tex-notes"
-version = "1.0.3"
+version = "1.0.4"
 description = "A minimal, offline LaTeX note-taking app with live preview and PDF export"
 edition = "2021"
 

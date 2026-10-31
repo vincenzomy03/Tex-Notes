@@ -3,7 +3,7 @@ import { isTauriEnvironment } from './compilerService';
 
 const REPO_OWNER = 'vincenzomy03';
 const REPO_NAME = 'Tex-Notes';
-const CURRENT_VERSION = '1.0.3';
+const CURRENT_VERSION = '1.0.4';
 
 export async function checkGitHubUpdates(): Promise<UpdateInfo> {
   try {
