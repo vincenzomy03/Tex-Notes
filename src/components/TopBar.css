@@ -45,6 +45,15 @@
   gap: 6px;
 }
 
+.btn-icon {
+  padding: 5px 8px;
+  min-width: 32px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .topbar-center {
   display: flex;
   align-items: center;

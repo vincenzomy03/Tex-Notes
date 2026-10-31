@@ -3,8 +3,8 @@ $ProgressPreference = "SilentlyContinue"
 
 $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
 
-Write-Host "==> Compilazione app e installer con Tauri CLI (Release ottimizzata con frontend integrato)..." -ForegroundColor Cyan
-npx tauri build
+Write-Host "==> Compilazione app con Tauri CLI (Release ottimizzata con frontend integrato)..." -ForegroundColor Cyan
+npx tauri build --no-bundle
 
 Write-Host "==> Preparazione cartella release/..." -ForegroundColor Cyan
 $releaseDir = "release"

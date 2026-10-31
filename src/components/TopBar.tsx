@@ -72,30 +72,26 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         <div className="topbar-actions">
-          <button className="btn" onClick={onOpen} title="Apri file .tex (Ctrl+O)">
-            <FolderOpen size={14} />
-            <span>Apri</span>
+          <button className="btn btn-icon" onClick={onOpen} title="Apri file .tex (Ctrl+O)">
+            <FolderOpen size={16} />
           </button>
 
           <button
-            className={`btn ${isDirty ? 'btn-primary' : ''}`}
+            className={`btn btn-icon ${isDirty ? 'btn-primary' : ''}`}
             onClick={onSave}
             title="Salva file .tex (Ctrl+S)"
           >
-            <Save size={14} />
-            <span>Salva</span>
+            <Save size={16} />
           </button>
 
           {onInsertMedia && (
-            <button className="btn" onClick={onInsertMedia} title="Inserisci media (PNG, JPG, PDF) nella cartella images">
-              <ImageIcon size={14} />
-              <span>Inserisci Media</span>
+            <button className="btn btn-icon" onClick={onInsertMedia} title="Inserisci media (PNG, JPG, PDF) nella cartella images">
+              <ImageIcon size={16} />
             </button>
           )}
 
-          <button className="btn" onClick={onExportPdf} title="Esporta PDF compilato">
-            <Download size={14} />
-            <span>Esporta PDF</span>
+          <button className="btn btn-icon" onClick={onExportPdf} title="Esporta PDF compilato">
+            <Download size={16} />
           </button>
         </div>
       </div>
@@ -158,9 +154,11 @@ export const TopBar: React.FC<TopBarProps> = ({
             </span>
           )}
           {compileStatus === 'success' && (
-            <span style={{ color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <CheckCircle2 size={13} />
-              <span>PDF pronto ({((compileDurationMs || 0) / 1000).toFixed(1)}s)</span>
+            <span
+              style={{ color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center' }}
+              title={`PDF pronto (${((compileDurationMs || 0) / 1000).toFixed(1)}s)`}
+            >
+              <CheckCircle2 size={16} />
             </span>
           )}
           {compileStatus === 'error' && (
@@ -197,12 +195,11 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Vocabulary panel toggle */}
         <button
-          className={`btn ${isVocabOpen ? 'btn-primary' : ''}`}
+          className={`btn btn-icon ${isVocabOpen ? 'btn-primary' : ''}`}
           onClick={onToggleVocab}
-          title="Apri/chiudi il vocabolario LaTeX dei comandi"
+          title="Vocabolario LaTeX dei comandi"
         >
-          <BookOpen size={14} />
-          <span>Vocabolario</span>
+          <BookOpen size={16} />
         </button>
       </div>
     </header>
