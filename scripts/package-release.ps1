@@ -10,10 +10,6 @@ Write-Host "==> Preparazione cartella release/..." -ForegroundColor Cyan
 $releaseDir = "release"
 $portableDir = "$releaseDir/Tex-Notes-Portable"
 
-if (Test-Path $releaseDir) {
-    Remove-Item -Recurse -Force $releaseDir
-}
-
 New-Item -ItemType Directory -Force -Path "$portableDir/bin" | Out-Null
 New-Item -ItemType Directory -Force -Path "$releaseDir/Installers" | Out-Null
 

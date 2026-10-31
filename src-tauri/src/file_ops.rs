@@ -43,8 +43,8 @@ pub fn copy_media_to_document_images(src_path_str: &str, doc_dir_str: Option<&st
         .ok_or_else(|| "Nome file media non valido".to_string())?
         .to_string_lossy();
 
-    // Sanitize filename: replace spaces with underscores to prevent LaTeX graphicx parse errors
-    let sanitized_name = original_name.replace(' ', "_");
+    // Sanitize filename: replace spaces with hyphens to prevent LaTeX graphicx and math subscript parse errors
+    let sanitized_name = original_name.replace(' ', "-");
 
     let base_dir = match doc_dir_str {
         Some(dir) if !dir.trim().is_empty() => PathBuf::from(dir),

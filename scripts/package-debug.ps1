@@ -8,9 +8,6 @@ npx tauri build --debug --no-bundle
 
 Write-Host "==> Preparazione cartella debug/..." -ForegroundColor Cyan
 $debugDir = "debug"
-if (Test-Path $debugDir) {
-    Remove-Item -Recurse -Force $debugDir
-}
 New-Item -ItemType Directory -Force -Path "$debugDir/bin" | Out-Null
 
 Copy-Item "src-tauri/target/debug/tex-notes.exe" "$debugDir/Tex-Notes-Debug.exe" -Force

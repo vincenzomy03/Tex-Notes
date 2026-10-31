@@ -166,7 +166,7 @@ export async function insertMediaDialog(
         docDir = docPath.replace(/[/\\][^/\\]+$/, '');
       }
 
-      let finalFileName: string = (selected.split(/[/\\]/).pop() || 'media.png').replace(/\s+/g, '_');
+      let finalFileName: string = (selected.split(/[/\\]/).pop() || 'media.png').replace(/\s+/g, '-');
 
       // Copy file directly to docDir/images/ (or to session workspace if doc is unsaved)
       finalFileName = await invoke<string>('copy_media_to_images', {
@@ -174,7 +174,8 @@ export async function insertMediaDialog(
         docDir: docDir || null,
       });
 
-      const cleanLabel = finalFileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const captionText = finalFileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      const cleanLabel = finalFileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '-');
       const isPdf = finalFileName.toLowerCase().endsWith('.pdf');
 
       const snippet = isPdf
@@ -182,7 +183,7 @@ export async function insertMediaDialog(
         : `\\begin{figure}[htbp]
     \\centering
     \\includegraphics[width=0.75\\linewidth]{images/${finalFileName}}
-    \\caption{Didascalia per ${finalFileName}}
+    \\caption{${captionText}}
     \\label{fig:${cleanLabel}}
 \\end{figure}`;
 
@@ -201,17 +202,19 @@ export async function insertMediaDialog(
     input.onchange = () => {
       if (input.files && input.files.length > 0) {
         const file = input.files[0];
-        const isPdf = file.name.toLowerCase().endsWith('.pdf');
-        const cleanLabel = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const safeName = file.name.replace(/\s+/g, '-');
+        const captionText = safeName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        const isPdf = safeName.toLowerCase().endsWith('.pdf');
+        const cleanLabel = safeName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '-');
         const snippet = isPdf
-          ? `\\includegraphics[width=0.75\\linewidth]{images/${file.name}}`
+          ? `\\includegraphics[width=0.75\\linewidth]{images/${safeName}}`
           : `\\begin{figure}[htbp]
     \\centering
-    \\includegraphics[width=0.75\\linewidth]{images/${file.name}}
-    \\caption{Didascalia per ${file.name}}
+    \\includegraphics[width=0.75\\linewidth]{images/${safeName}}
+    \\caption{${captionText}}
     \\label{fig:${cleanLabel}}
 \\end{figure}`;
-        resolve({ fileName: file.name, snippet });
+        resolve({ fileName: safeName, snippet });
       } else {
         resolve(null);
       }
