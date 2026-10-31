@@ -6,6 +6,21 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::Instant;
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
+/// Windows creation flag to completely suppress any console / cmd window popup
+#[cfg(windows)]
+pub const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+/// Create a child process command that runs silently without popping up a console window on Windows
+pub fn create_hidden_command<P: AsRef<std::ffi::OsStr>>(program: P) -> Command {
+    let mut cmd = Command::new(program);
+    #[cfg(windows)]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CompileError {
     pub line: usize,
@@ -47,7 +62,7 @@ pub fn find_tectonic_binary() -> Option<PathBuf> {
     }
 
     // 3. Check system PATH
-    if Command::new("tectonic").arg("--version").output().is_ok() {
+    if create_hidden_command("tectonic").arg("--version").output().is_ok() {
         return Some(PathBuf::from("tectonic"));
     }
 
@@ -141,7 +156,7 @@ pub fn run_compilation(
     if selected_engine == "tectonic" {
         let tectonic_bin = find_tectonic_binary().unwrap_or_else(|| PathBuf::from("tectonic"));
 
-        let output = Command::new(&tectonic_bin)
+        let output = create_hidden_command(&tectonic_bin)
             .current_dir(&compile_dir)
             .arg("--outdir")
             .arg(&compile_dir)
@@ -163,7 +178,7 @@ pub fn run_compilation(
 
     // Fallback to pdflatex if tectonic failed or if pdflatex engine selected
     if !success && (selected_engine == "pdflatex" || !pdf_file_path.exists()) {
-        let pdflatex_cmd = Command::new("pdflatex")
+        let pdflatex_cmd = create_hidden_command("pdflatex")
             .current_dir(&compile_dir)
             .arg("-interaction=nonstopmode")
             .arg("-output-directory")
