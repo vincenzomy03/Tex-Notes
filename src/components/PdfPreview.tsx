@@ -32,7 +32,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [scale, setScale] = useState<number>(1.2);
+  const [scale, setScale] = useState<number>(1.0);
   const [lastValidPdf, setLastValidPdf] = useState<string | null>(null);
   const [showingLastValid, setShowingLastValid] = useState<boolean>(false);
   const [pageInput, setPageInput] = useState<string>('1');
@@ -78,7 +78,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     }
   };
 
-  // Render all pages in vertical layout
+  // High-DPI crisp rendering for all pages
   const renderPages = useCallback(async () => {
     if (!pdfDoc || !viewportRef.current) return;
 
@@ -90,19 +90,20 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
       const canvas = pageCanvases[pageNum - 1];
       if (!canvas) continue;
 
-      const viewport = page.getViewport({ scale });
       const dpr = window.devicePixelRatio || 1;
+      const viewport = page.getViewport({ scale: scale * dpr });
+      const cssViewport = page.getViewport({ scale });
 
-      canvas.width = Math.floor(viewport.width * dpr);
-      canvas.height = Math.floor(viewport.height * dpr);
-      canvas.style.width = `${Math.floor(viewport.width)}px`;
-      canvas.style.height = `${Math.floor(viewport.height)}px`;
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      canvas.style.width = `${Math.floor(cssViewport.width)}px`;
+      canvas.style.height = `${Math.floor(cssViewport.height)}px`;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { alpha: false });
       if (!ctx) continue;
 
-      ctx.save();
-      ctx.scale(dpr, dpr);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
       const renderContext = {
         canvasContext: ctx,
@@ -117,7 +118,6 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
 
       renderTaskRef.current = page.render(renderContext);
       await renderTaskRef.current.promise;
-      ctx.restore();
     }
 
     // Restore scroll position after render
@@ -151,16 +151,26 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     });
   };
 
+  // Preset zoom levels including clean 100%
+  const ZOOM_LEVELS = [0.5, 0.6, 0.75, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
+
   const handleZoomIn = () => {
-    setScale((prev) => Math.min(prev + 0.15, 3.0));
+    setScale((prev) => {
+      const next = ZOOM_LEVELS.find((lvl) => lvl > prev + 0.02);
+      return next ?? Math.min(Math.round((prev + 0.1) * 10) / 10, 3.0);
+    });
   };
 
   const handleZoomOut = () => {
-    setScale((prev) => Math.max(prev - 0.15, 0.5));
+    setScale((prev) => {
+      const prevLevels = ZOOM_LEVELS.filter((lvl) => lvl < prev - 0.02);
+      const prevVal = prevLevels[prevLevels.length - 1];
+      return prevVal ?? Math.max(Math.round((prev - 0.1) * 10) / 10, 0.5);
+    });
   };
 
   const handleZoomReset = () => {
-    setScale(1.2);
+    setScale(1.0);
   };
 
   const handleFitWidth = () => {
@@ -168,8 +178,8 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     const containerWidth = viewportRef.current.clientWidth - 48;
     pdfDoc.getPage(1).then((page) => {
       const unscaledViewport = page.getViewport({ scale: 1.0 });
-      const newScale = containerWidth / unscaledViewport.width;
-      setScale(Math.max(0.6, Math.min(newScale, 2.5)));
+      const newScale = Math.round((containerWidth / unscaledViewport.width) * 100) / 100;
+      setScale(Math.max(0.5, Math.min(newScale, 2.5)));
     });
   };
 

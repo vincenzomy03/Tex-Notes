@@ -260,10 +260,10 @@
     "category": "matematica",
     "command": "\\frac{numeratore}{denominatore}",
     "insertText": "\\frac{${1:a}}{${2:b}}",
-    "description": "Crea una frazione con barra di divisione orizzontale.",
-    "syntax": "\\frac{num}{den}",
-    "example": "\\frac{a + b}{c - d}",
-    "preview": "a + b fratto c - d",
+    "description": "Crea una frazione con barra orizzontale. Richiede modalità matematica (es. $\\frac{a}{b}$ oppure in equation).",
+    "syntax": "$\\frac{numeratore}{denominatore}$",
+    "example": "$\\frac{a + b}{c - d}$",
+    "preview": "(a + b) / (c - d) con linea di frazione orizzontale",
     "keywords": ["frac", "frazione", "diviso", "divisione", "rapporto", "numeratore", "denominatore"]
   },
   {

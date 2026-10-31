@@ -92,18 +92,23 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       <div className="topbar-center">
         {/* Compiler engine selector */}
-        <select
-          className="engine-select"
-          value={compilerEngine}
-          onChange={(e) => onEngineChange(e.target.value)}
-          title="Motore di compilazione LaTeX"
+        <div
+          className="engine-select-group"
+          title="Motore di compilazione LaTeX in background (Tectonic è offline e consigliato; pdfLaTeX usa MiKTeX)"
         >
-          {availableEngines.map((eng) => (
-            <option key={eng.id} value={eng.id} disabled={!eng.available}>
-              {eng.name} {!eng.available ? '(non trovato)' : ''}
-            </option>
-          ))}
-        </select>
+          <span className="engine-select-label">Compilatore:</span>
+          <select
+            className="engine-select"
+            value={compilerEngine}
+            onChange={(e) => onEngineChange(e.target.value)}
+          >
+            {availableEngines.map((eng) => (
+              <option key={eng.id} value={eng.id} disabled={!eng.available}>
+                {eng.name} {!eng.available ? '(non trovato)' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Live Preview switch */}
         <div

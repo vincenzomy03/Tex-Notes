@@ -114,17 +114,34 @@
 }
 
 /* Engine select */
-.engine-select {
+.engine-select-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
   border-radius: var(--radius-md);
-  padding: 4px 8px;
+  padding: 2px 8px;
+}
+
+.engine-select-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  user-select: none;
+}
+
+.engine-select {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
   font-size: 11px;
   outline: none;
   cursor: pointer;
+  padding: 3px 2px;
 }
 
 .engine-select:focus {
-  border-color: var(--border-focus);
+  outline: none;
 }
+
