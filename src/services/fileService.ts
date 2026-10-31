@@ -166,7 +166,7 @@ export async function insertMediaDialog(
         docDir = docPath.replace(/[/\\][^/\\]+$/, '');
       }
 
-      let finalFileName: string = selected.split(/[/\\]/).pop() || 'media.png';
+      let finalFileName: string = (selected.split(/[/\\]/).pop() || 'media.png').replace(/\s+/g, '_');
 
       // If document is saved on disk, copy file directly to docDir/images/
       if (docDir) {

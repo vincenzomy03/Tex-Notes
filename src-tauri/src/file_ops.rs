@@ -29,15 +29,19 @@ pub fn save_pdf(target_path: &str, base64_data: &str) -> Result<(), String> {
 /// Copy external media file into document's images directory
 pub fn copy_media_to_document_images(src_path_str: &str, doc_dir_str: &str) -> Result<String, String> {
     let src_path = std::path::Path::new(src_path_str);
-    let file_name = src_path
+    let original_name = src_path
         .file_name()
-        .ok_or_else(|| "Nome file media non valido".to_string())?;
+        .ok_or_else(|| "Nome file media non valido".to_string())?
+        .to_string_lossy();
+
+    // Sanitize filename: replace spaces with underscores to prevent LaTeX graphicx parse errors
+    let sanitized_name = original_name.replace(' ', "_");
 
     let images_dir = std::path::Path::new(doc_dir_str).join("images");
     fs::create_dir_all(&images_dir).map_err(|e| format!("Impossibile creare la cartella 'images': {}", e))?;
 
-    let dest_path = images_dir.join(file_name);
+    let dest_path = images_dir.join(&sanitized_name);
     fs::copy(src_path, &dest_path).map_err(|e| format!("Impossibile copiare il file: {}", e))?;
 
-    Ok(file_name.to_string_lossy().to_string())
+    Ok(sanitized_name)
 }

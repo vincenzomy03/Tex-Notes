@@ -179,8 +179,35 @@ export default function App() {
 
   const handleInsertMedia = async () => {
     try {
-      const res = await insertMediaDialog(fileState.path);
+      let currentPath = fileState.path;
+      // If file has never been saved, prompt to save first so images/ folder is created next to the document
+      if (!currentPath) {
+        const res = await saveDocument(null, content, fileState.name);
+        currentPath = res.path;
+        setFileState((prev) => ({
+          ...prev,
+          path: res.path,
+          name: res.name,
+          isDirty: false,
+        }));
+      }
+
+      const res = await insertMediaDialog(currentPath);
       if (res && editorRef.current) {
+        // Auto-inject \usepackage{graphicx} if missing from preamble
+        setContent((prev) => {
+          if (!prev.includes('graphicx')) {
+            if (prev.includes('\\documentclass')) {
+              return prev.replace(
+                /(\\documentclass[^\n]*\n)/,
+                '$1\\usepackage{graphicx}\n'
+              );
+            }
+            return '\\usepackage{graphicx}\n' + prev;
+          }
+          return prev;
+        });
+
         editorRef.current.insertSnippet(res.snippet);
       }
     } catch (err) {
