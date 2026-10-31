@@ -39,25 +39,48 @@ pub struct CompileResponse {
 }
 
 /// Helper to locate the Tectonic executable.
-/// Searches in ./bin/tectonic.exe, next to executable, or in PATH.
+/// Searches in ./bin, ../bin, next to executable, parent directories, resources, or in PATH.
 pub fn find_tectonic_binary() -> Option<PathBuf> {
-    // 1. Check relative ./bin/tectonic.exe
-    let local_bin = PathBuf::from("bin/tectonic.exe");
-    if local_bin.exists() {
-        return Some(local_bin);
+    let bin_names = if cfg!(windows) {
+        vec!["tectonic.exe", "tectonic"]
+    } else {
+        vec!["tectonic"]
+    };
+
+    // 1. Check relative candidate paths from current working directory
+    if let Ok(cwd) = std::env::current_dir() {
+        for rel in &["bin", "../bin", "../../bin", "resources/bin", "resources", "."] {
+            for name in &bin_names {
+                let candidate = cwd.join(rel).join(name);
+                if candidate.is_file() {
+                    return Some(candidate);
+                }
+            }
+        }
     }
 
-    // 2. Check next to current executable
+    // 2. Search around current_exe walking up parent directories (dev & production bundle)
     if let Ok(exe_path) = std::env::current_exe() {
-        if let Some(parent) = exe_path.parent() {
-            let next_to_exe = parent.join("tectonic.exe");
-            if next_to_exe.exists() {
-                return Some(next_to_exe);
+        let mut curr = exe_path.parent();
+        let mut depth = 0;
+        while let Some(dir) = curr {
+            if depth > 6 {
+                break;
             }
-            let in_bin_next_to_exe = parent.join("bin").join("tectonic.exe");
-            if in_bin_next_to_exe.exists() {
-                return Some(in_bin_next_to_exe);
+            for rel in &["bin", "resources/bin", "resources", ""] {
+                for name in &bin_names {
+                    let candidate = if rel.is_empty() {
+                        dir.join(name)
+                    } else {
+                        dir.join(rel).join(name)
+                    };
+                    if candidate.is_file() {
+                        return Some(candidate);
+                    }
+                }
             }
+            curr = dir.parent();
+            depth += 1;
         }
     }
 
