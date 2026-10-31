@@ -53,6 +53,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path "portable/Tex-Notes/bin"
           Copy-Item "src-tauri/target/release/tex-notes.exe" "portable/Tex-Notes/Tex-Notes.exe"
+          Get-ChildItem -Path "src-tauri/target/release" -Filter "*.dll" | Copy-Item -Destination "portable/Tex-Notes" -Force
           Copy-Item "bin/tectonic.exe" "portable/Tex-Notes/tectonic.exe"
           Copy-Item "bin/tectonic.exe" "portable/Tex-Notes/bin/tectonic.exe"
           Compress-Archive -Path "portable/Tex-Notes" -DestinationPath "Tex-Notes-windows-portable.zip" -Force

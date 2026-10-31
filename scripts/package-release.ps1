@@ -19,6 +19,7 @@ New-Item -ItemType Directory -Force -Path "$portableDir/bin" | Out-Null
 New-Item -ItemType Directory -Force -Path "$releaseDir/Installers" | Out-Null
 
 Copy-Item "src-tauri/target/release/tex-notes.exe" "$portableDir/Tex-Notes.exe" -Force
+Get-ChildItem -Path "src-tauri/target/release" -Filter "*.dll" | Copy-Item -Destination $portableDir -Force
 if (Test-Path "bin/tectonic.exe") {
     Copy-Item "bin/tectonic.exe" "$portableDir/tectonic.exe" -Force
     Copy-Item "bin/tectonic.exe" "$portableDir/bin/tectonic.exe" -Force

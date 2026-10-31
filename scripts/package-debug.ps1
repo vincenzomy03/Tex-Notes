@@ -15,6 +15,7 @@ if (Test-Path $debugDir) {
 New-Item -ItemType Directory -Force -Path "$debugDir/bin" | Out-Null
 
 Copy-Item "src-tauri/target/debug/tex-notes.exe" "$debugDir/Tex-Notes-Debug.exe" -Force
+Get-ChildItem -Path "src-tauri/target/debug" -Filter "*.dll" | Copy-Item -Destination $debugDir -Force
 if (Test-Path "bin/tectonic.exe") {
     Copy-Item "bin/tectonic.exe" "$debugDir/tectonic.exe" -Force
     Copy-Item "bin/tectonic.exe" "$debugDir/bin/tectonic.exe" -Force
