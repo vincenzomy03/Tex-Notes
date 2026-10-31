@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "package:debug": "powershell -ExecutionPolicy Bypass -File ./scripts/package-debug.ps1",
+    "package:release": "powershell -ExecutionPolicy Bypass -File ./scripts/package-release.ps1"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.4",

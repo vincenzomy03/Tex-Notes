@@ -7,6 +7,9 @@ bin/
 # Tauri build artifacts
 src-tauri/target/
 src-tauri/gen/
+debug/
+release/
+*.zip
 
 # LaTeX temp files
 *.aux
