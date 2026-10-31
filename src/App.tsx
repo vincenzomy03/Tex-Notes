@@ -14,6 +14,7 @@ import {
   openDocumentDialog,
   saveDocument,
   exportPdfDialog,
+  insertMediaDialog,
 } from './services/fileService';
 import { checkGitHubUpdates } from './services/updateService';
 import defaultLatexDoc from './data/defaultDocument.tex?raw';
@@ -176,6 +177,17 @@ export default function App() {
     }
   };
 
+  const handleInsertMedia = async () => {
+    try {
+      const res = await insertMediaDialog(fileState.path);
+      if (res && editorRef.current) {
+        editorRef.current.insertSnippet(res.snippet);
+      }
+    } catch (err) {
+      console.warn('Inserimento media annullato:', err);
+    }
+  };
+
   // Drag and drop of .tex files onto window
   const handleFileDrop = async (file: File) => {
     try {
@@ -255,6 +267,7 @@ export default function App() {
         onCompile={() => triggerCompilation(content)}
         onOpen={handleOpenFile}
         onSave={handleSaveFile}
+        onInsertMedia={handleInsertMedia}
         onExportPdf={handleExportPdf}
         compileStatus={compileStatus}
         compileDurationMs={compileDurationMs}

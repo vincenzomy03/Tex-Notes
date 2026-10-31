@@ -144,3 +144,80 @@ export async function exportPdfDialog(
 
   return defaultName;
 }
+
+export async function insertMediaDialog(
+  docPath: string | null
+): Promise<{ fileName: string; snippet: string } | null> {
+  if (isTauriEnvironment()) {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const { invoke } = await import('@tauri-apps/api/core');
+
+      const selected = await open({
+        multiple: false,
+        directory: false,
+        filters: [{ name: 'Media (PDF, Immagini)', extensions: ['png', 'jpg', 'jpeg', 'pdf', 'svg', 'webp'] }],
+      });
+
+      if (!selected || typeof selected !== 'string') return null;
+
+      let docDir: string | null = null;
+      if (docPath) {
+        docDir = docPath.replace(/[/\\][^/\\]+$/, '');
+      }
+
+      let finalFileName: string = selected.split(/[/\\]/).pop() || 'media.png';
+
+      // If document is saved on disk, copy file directly to docDir/images/
+      if (docDir) {
+        finalFileName = await invoke<string>('copy_media_to_images', {
+          srcPath: selected,
+          docDir,
+        });
+      }
+
+      const cleanLabel = finalFileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const isPdf = finalFileName.toLowerCase().endsWith('.pdf');
+
+      const snippet = isPdf
+        ? `\\includegraphics[width=0.75\\linewidth]{images/${finalFileName}}`
+        : `\\begin{figure}[htbp]
+    \\centering
+    \\includegraphics[width=0.75\\linewidth]{images/${finalFileName}}
+    \\caption{Didascalia per ${finalFileName}}
+    \\label{fig:${cleanLabel}}
+\\end{figure}`;
+
+      return { fileName: finalFileName, snippet };
+    } catch (err) {
+      console.error('Error inserting media:', err);
+      throw err;
+    }
+  }
+
+  // Web fallback using file picker
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,.pdf';
+    input.onchange = () => {
+      if (input.files && input.files.length > 0) {
+        const file = input.files[0];
+        const isPdf = file.name.toLowerCase().endsWith('.pdf');
+        const cleanLabel = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const snippet = isPdf
+          ? `\\includegraphics[width=0.75\\linewidth]{images/${file.name}}`
+          : `\\begin{figure}[htbp]
+    \\centering
+    \\includegraphics[width=0.75\\linewidth]{images/${file.name}}
+    \\caption{Didascalia per ${file.name}}
+    \\label{fig:${cleanLabel}}
+\\end{figure}`;
+        resolve({ fileName: file.name, snippet });
+      } else {
+        resolve(null);
+      }
+    };
+    input.click();
+  });
+}

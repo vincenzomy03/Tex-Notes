@@ -18,6 +18,7 @@ pub fn run() {
             commands::get_available_compilers,
             commands::open_external_url,
             commands::download_and_install_update,
+            commands::copy_media_to_images,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tex-Notes application");

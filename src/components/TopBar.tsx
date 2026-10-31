@@ -11,6 +11,7 @@ import {
   Sparkles,
   Github,
   Check,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { CompileStatus, UpdateInfo } from '../types';
 import './TopBar.css';
@@ -24,6 +25,7 @@ interface TopBarProps {
   onOpen: () => void;
   onSave: () => void;
   onExportPdf: () => void;
+  onInsertMedia?: () => void;
   compileStatus: CompileStatus;
   compileDurationMs?: number;
   errorCount: number;
@@ -45,6 +47,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onOpen,
   onSave,
   onExportPdf,
+  onInsertMedia,
   compileStatus,
   compileDurationMs,
   errorCount,
@@ -82,6 +85,13 @@ export const TopBar: React.FC<TopBarProps> = ({
             <Save size={14} />
             <span>Salva</span>
           </button>
+
+          {onInsertMedia && (
+            <button className="btn" onClick={onInsertMedia} title="Inserisci media (PNG, JPG, PDF) nella cartella images">
+              <ImageIcon size={14} />
+              <span>Inserisci Media</span>
+            </button>
+          )}
 
           <button className="btn" onClick={onExportPdf} title="Esporta PDF compilato">
             <Download size={14} />
@@ -179,7 +189,9 @@ export const TopBar: React.FC<TopBarProps> = ({
         >
           <Github size={14} />
           <span>
-            {updateInfo?.available ? `Update v${updateInfo.latestVersion}` : 'v1.0.0'}
+            {updateInfo?.available
+              ? `Update v${updateInfo.latestVersion}`
+              : `v${updateInfo?.currentVersion || '1.0.3'}`}
           </span>
         </button>
 

@@ -47,13 +47,33 @@ pub fn find_tectonic_binary() -> Option<PathBuf> {
         vec!["tectonic"]
     };
 
+    let subdirs = [
+        "bin",
+        "resources/bin",
+        "resources",
+        "_up_/bin",
+        "resources/_up_/bin",
+        "_up_",
+        "resources/_up_",
+        "",
+    ];
+
     // 1. Check relative candidate paths from current working directory
     if let Ok(cwd) = std::env::current_dir() {
-        for rel in &["bin", "../bin", "../../bin", "resources/bin", "resources", "."] {
-            for name in &bin_names {
-                let candidate = cwd.join(rel).join(name);
-                if candidate.is_file() {
-                    return Some(candidate);
+        for prefix in &["", "..", "../.."] {
+            for sub in &subdirs {
+                for name in &bin_names {
+                    let mut candidate = cwd.clone();
+                    if !prefix.is_empty() {
+                        candidate = candidate.join(prefix);
+                    }
+                    if !sub.is_empty() {
+                        candidate = candidate.join(sub);
+                    }
+                    candidate = candidate.join(name);
+                    if candidate.is_file() {
+                        return Some(candidate);
+                    }
                 }
             }
         }
@@ -67,12 +87,12 @@ pub fn find_tectonic_binary() -> Option<PathBuf> {
             if depth > 6 {
                 break;
             }
-            for rel in &["bin", "resources/bin", "resources", ""] {
+            for sub in &subdirs {
                 for name in &bin_names {
-                    let candidate = if rel.is_empty() {
+                    let candidate = if sub.is_empty() {
                         dir.join(name)
                     } else {
-                        dir.join(rel).join(name)
+                        dir.join(sub).join(name)
                     };
                     if candidate.is_file() {
                         return Some(candidate);
@@ -84,7 +104,27 @@ pub fn find_tectonic_binary() -> Option<PathBuf> {
         }
     }
 
-    // 3. Check system PATH
+    // 3. Search in standard install locations on Windows (NSIS AppData)
+    #[cfg(windows)]
+    {
+        if let Ok(local_app_data) = std::env::var("LOCALAPPDATA") {
+            let p = PathBuf::from(local_app_data).join("Programs").join("Tex-Notes");
+            for sub in &subdirs {
+                for name in &bin_names {
+                    let candidate = if sub.is_empty() {
+                        p.join(name)
+                    } else {
+                        p.join(sub).join(name)
+                    };
+                    if candidate.is_file() {
+                        return Some(candidate);
+                    }
+                }
+            }
+        }
+    }
+
+    // 4. Check system PATH
     if create_hidden_command("tectonic").arg("--version").output().is_ok() {
         return Some(PathBuf::from("tectonic"));
     }

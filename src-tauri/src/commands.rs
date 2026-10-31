@@ -75,6 +75,11 @@ pub async fn get_available_compilers() -> Vec<CompilerInfo> {
 }
 
 #[tauri::command]
+pub fn copy_media_to_images(src_path: String, doc_dir: String) -> Result<String, String> {
+    file_ops::copy_media_to_document_images(&src_path, &doc_dir)
+}
+
+#[tauri::command]
 pub fn open_external_url(url: String) -> Result<(), String> {
     #[cfg(windows)]
     {
