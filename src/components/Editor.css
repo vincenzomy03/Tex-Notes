@@ -1,0 +1,185 @@
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.editor-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editor-filename {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dirty-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-cyan);
+  display: inline-block;
+}
+
+.editor-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.editor-container {
+  flex: 1;
+  height: calc(100% - 32px);
+  overflow: hidden;
+  position: relative;
+}
+
+/* CodeMirror 6 Theme Customization */
+.editor-container .cm-editor {
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.editor-container .cm-scroller {
+  overflow: auto;
+  font-family: inherit;
+}
+
+.editor-container .cm-content {
+  padding: 8px 0;
+  caret-color: var(--accent-cyan);
+}
+
+.editor-container .cm-line {
+  padding: 0 12px;
+}
+
+.editor-container .cm-gutters {
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  border-right: 1px solid var(--border-subtle);
+  user-select: none;
+}
+
+.editor-container .cm-lineNumbers .cm-gutterElement {
+  padding: 0 10px 0 14px;
+  min-width: 42px;
+  text-align: right;
+  font-size: 11.5px;
+}
+
+.editor-container .cm-activeLineGutter {
+  background-color: var(--bg-hover);
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.editor-container .cm-activeLine {
+  background-color: rgba(56, 189, 248, 0.04);
+}
+
+.editor-container .cm-selectionBackground,
+.editor-container ::selection {
+  background-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.editor-container .cm-focused {
+  outline: none !important;
+}
+
+/* Autocomplete Tooltip Customization */
+.cm-tooltip-autocomplete {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  padding: 4px !important;
+  z-index: 9999 !important;
+}
+
+.cm-tooltip-autocomplete ul {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.cm-tooltip-autocomplete ul li {
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-primary) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.cm-tooltip-autocomplete ul li[aria-selected] {
+  background-color: rgba(99, 102, 241, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.cm-completionDetail {
+  font-style: normal !important;
+  font-size: 10.5px !important;
+  color: var(--text-muted) !important;
+  margin-left: 8px !important;
+}
+
+.cm-completionMatchedText {
+  color: var(--accent-cyan) !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+}
+
+/* Highlight line effect for errors */
+.cm-error-line {
+  background-color: rgba(244, 63, 94, 0.18) !important;
+  border-left: 3px solid var(--accent-rose);
+}
+
+/* Drag overlay */
+.editor-drag-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(4px);
+  border: 2px dashed var(--accent-indigo);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 50;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: none;
+}
