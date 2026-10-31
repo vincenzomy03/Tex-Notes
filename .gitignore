@@ -1,0 +1,27 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+bin/
+
+# Tauri build artifacts
+src-tauri/target/
+
+# LaTeX temp files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

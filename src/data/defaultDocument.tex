@@ -1,0 +1,72 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=cyan,
+    pdftitle={Appunti Tex-Notes}
+}
+
+\title{\textbf{Tex-Notes}: Appunti Rapidi in \LaTeX}
+\author{Autore del Documento}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduzione}
+Benvenuto in \textbf{Tex-Notes}! Questo editor minimale e completamente offline ti permette di scrivere appunti in \LaTeX{} con anteprima live ultra-veloce e consultazione integrata dei comandi.
+
+\subsection{Caratteristiche Principali}
+\begin{itemize}
+    \item \textbf{Compilazione Offline:} Tectonic compila localmente senza richiedere connessione internet.
+    \item \textbf{Anteprima Live:} Aggiornamento automatico dopo 1-2 secondi di pausa nella digitazione.
+    \item \textbf{Vocabolario dei Comandi:} Clicca su un comando dal pannello laterale per inserirlo al cursore.
+\end{itemize}
+
+\section{Matematica ed Equazioni}
+Possiamo inserire formule in linea come $e^{i\pi} + 1 = 0$ oppure formule centrate:
+
+\begin{equation}
+    f(x) = \int_{0}^{\infty} \frac{\sin(t)}{t} \, dt = \frac{\pi}{2}
+\end{equation}
+
+\subsection{Matrici ed Algebra Lineare}
+Ecco una matrice tra parentesi tonde e una tra parentesi quadre:
+\begin{equation*}
+    A = \begin{pmatrix}
+        \cos\theta & -\sin\theta \\
+        \sin\theta &  \cos\theta
+    \end{pmatrix}, \quad
+    B = \begin{bmatrix}
+        1 & 2 & 3 \\
+        0 & 1 & 4 \\
+        5 & 6 & 0
+    \end{bmatrix}
+\end{equation*}
+
+\section{Tabelle Eleganti}
+Grazie al pacchetto \texttt{booktabs}, le tabelle risultano pulite e professionali:
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llr}
+\toprule
+\textbf{Comando} & \textbf{Descrizione} & \textbf{Esempio} \\
+\midrule
+\texttt{\textbackslash frac\{a\}\{b\}} & Frazione & $\frac{1}{2}$ \\
+\texttt{\textbackslash sum\_\{i=1\}\^{}n} & Sommatoria & $\sum_{i=1}^n i$ \\
+\texttt{\textbackslash textbf\{testo\}} & Grassetto & \textbf{testo} \\
+\bottomrule
+\end{tabular}
+\caption{Esempio di comandi rapidi.}
+\label{tab:comandi}
+\end{table}
+
+\end{document}
