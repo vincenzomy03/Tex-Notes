@@ -33,13 +33,14 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   const [totalPages, setTotalPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
+  const [autoFit, setAutoFit] = useState<boolean>(true);
   const [lastValidPdf, setLastValidPdf] = useState<string | null>(null);
   const [showingLastValid, setShowingLastValid] = useState<boolean>(false);
   const [pageInput, setPageInput] = useState<string>('1');
 
   // Track scroll position across reloads
   const scrollPosRef = useRef<{ top: number; left: number }>({ top: 0, left: 0 });
-  const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
+  const activeRenderTasksRef = useRef<Map<number, pdfjsLib.RenderTask>>(new Map());
 
   // Update active PDF base64 source
   useEffect(() => {
@@ -51,6 +52,54 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
       setShowingLastValid(true);
     }
   }, [pdfBase64, hasError, lastValidPdf]);
+
+  // Calculate optimal fit scale according to container width
+  const computeFitScale = useCallback(
+    async (doc: pdfjsLib.PDFDocumentProxy, containerEl: HTMLDivElement) => {
+      try {
+        const page = await doc.getPage(1);
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
+        // 20px padding on each side plus a small safety margin
+        const availableWidth = containerEl.clientWidth - 44;
+        if (availableWidth > 80 && unscaledViewport.width > 0) {
+          const fit = Math.round((availableWidth / unscaledViewport.width) * 100) / 100;
+          return Math.max(0.35, Math.min(fit, 2.5));
+        }
+      } catch (err) {
+        console.error('Error computing fit scale:', err);
+      }
+      return null;
+    },
+    []
+  );
+
+  // Auto-fit responsive observer
+  useEffect(() => {
+    if (!viewportRef.current || !autoFit || !pdfDoc) return;
+    const container = viewportRef.current;
+
+    let timer: NodeJS.Timeout | null = null;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 60) {
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(() => {
+            computeFitScale(pdfDoc, container).then((newScale) => {
+              if (newScale && Math.abs(newScale - scale) > 0.02) {
+                setScale(newScale);
+              }
+            });
+          }, 35);
+        }
+      }
+    });
+
+    observer.observe(container);
+    return () => {
+      if (timer) clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [autoFit, pdfDoc, scale, computeFitScale]);
 
   const loadPdf = async (base64Data: string) => {
     try {
@@ -73,6 +122,13 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
       const loadedDoc = await loadingTask.promise;
       setPdfDoc(loadedDoc);
       setTotalPages(loadedDoc.numPages);
+
+      // Immediately apply auto-fit on initial load if enabled
+      if (autoFit && viewportRef.current) {
+        computeFitScale(loadedDoc, viewportRef.current).then((fitScale) => {
+          if (fitScale) setScale(fitScale);
+        });
+      }
     } catch (err) {
       console.error('Failed to parse and load PDF in pdf.js:', err);
     }
@@ -110,14 +166,27 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         viewport,
       };
 
-      if (renderTaskRef.current) {
+      const existingTask = activeRenderTasksRef.current.get(pageNum);
+      if (existingTask) {
         try {
-          renderTaskRef.current.cancel();
+          existingTask.cancel();
         } catch (_) {}
+        activeRenderTasksRef.current.delete(pageNum);
       }
 
-      renderTaskRef.current = page.render(renderContext);
-      await renderTaskRef.current.promise;
+      const task = page.render(renderContext);
+      activeRenderTasksRef.current.set(pageNum, task);
+      try {
+        await task.promise;
+      } catch (err: any) {
+        if (err?.name !== 'RenderingCancelledException') {
+          console.error(`Page ${pageNum} render error:`, err);
+        }
+      } finally {
+        if (activeRenderTasksRef.current.get(pageNum) === task) {
+          activeRenderTasksRef.current.delete(pageNum);
+        }
+      }
     }
 
     // Restore scroll position after render
@@ -155,6 +224,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   const ZOOM_LEVELS = [0.5, 0.6, 0.75, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
 
   const handleZoomIn = () => {
+    setAutoFit(false);
     setScale((prev) => {
       const next = ZOOM_LEVELS.find((lvl) => lvl > prev + 0.02);
       return next ?? Math.min(Math.round((prev + 0.1) * 10) / 10, 3.0);
@@ -162,25 +232,32 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   };
 
   const handleZoomOut = () => {
+    setAutoFit(false);
     setScale((prev) => {
       const prevLevels = ZOOM_LEVELS.filter((lvl) => lvl < prev - 0.02);
       const prevVal = prevLevels[prevLevels.length - 1];
-      return prevVal ?? Math.max(Math.round((prev - 0.1) * 10) / 10, 0.5);
+      return prevVal ?? Math.max(Math.round((prev - 0.1) * 10) / 10, 0.35);
     });
   };
 
   const handleZoomReset = () => {
+    setAutoFit(false);
     setScale(1.0);
   };
 
-  const handleFitWidth = () => {
-    if (!viewportRef.current || !pdfDoc) return;
-    const containerWidth = viewportRef.current.clientWidth - 48;
-    pdfDoc.getPage(1).then((page) => {
-      const unscaledViewport = page.getViewport({ scale: 1.0 });
-      const newScale = Math.round((containerWidth / unscaledViewport.width) * 100) / 100;
-      setScale(Math.max(0.5, Math.min(newScale, 2.5)));
-    });
+  const handleToggleFitWidth = () => {
+    if (!autoFit) {
+      setAutoFit(true);
+      if (viewportRef.current && pdfDoc) {
+        computeFitScale(pdfDoc, viewportRef.current).then((fitScale) => {
+          if (fitScale) setScale(fitScale);
+        });
+      }
+    } else {
+      // Toggle off back to standard 100%
+      setAutoFit(false);
+      setScale(1.0);
+    }
   };
 
   const scrollToPage = (pageNum: number) => {
@@ -248,7 +325,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
           <button
             className="btn btn-ghost btn-icon"
             onClick={handleZoomOut}
-            disabled={scale <= 0.5}
+            disabled={scale <= 0.35}
             title="Riduci zoom"
           >
             <ZoomOut size={14} />
@@ -258,9 +335,9 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             className="pdf-zoom-label"
             onClick={handleZoomReset}
             style={{ cursor: 'pointer' }}
-            title="Ripristina 100%"
+            title={autoFit ? 'Adattamento automatico attivo (clicca per 100%)' : 'Ripristina zoom 100%'}
           >
-            {Math.round(scale * 100)}%
+            {autoFit ? 'Auto ' : ''}{Math.round(scale * 100)}%
           </span>
 
           <button
@@ -273,9 +350,9 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
           </button>
 
           <button
-            className="btn btn-ghost btn-icon"
-            onClick={handleFitWidth}
-            title="Adatta alla larghezza"
+            className={`btn btn-ghost btn-icon ${autoFit ? 'btn-active' : ''}`}
+            onClick={handleToggleFitWidth}
+            title={autoFit ? 'Adattamento automatico attivo (clicca per disattivare)' : 'Adatta automaticamente alla larghezza'}
           >
             <Maximize2 size={13} />
           </button>
@@ -304,7 +381,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         </div>
       )}
 
-      <div className="pdf-viewport" ref={viewportRef} onScroll={handleScroll}>
+      <div className={`pdf-viewport ${autoFit ? 'autofit' : ''}`} ref={viewportRef} onScroll={handleScroll}>
         {pdfDoc ? (
           Array.from({ length: totalPages }).map((_, index) => (
             <canvas key={`pdf-page-${index + 1}`} className="pdf-page-card" />

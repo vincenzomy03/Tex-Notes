@@ -94,7 +94,8 @@
 
 .pdf-viewport {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -102,6 +103,11 @@
   gap: 16px;
   background-color: #12161f;
   scroll-behavior: smooth;
+  width: 100%;
+}
+
+.pdf-viewport.autofit {
+  overflow-x: hidden;
 }
 
 .pdf-page-card {
@@ -109,7 +115,14 @@
   border-radius: 2px;
   background-color: #ffffff;
   display: block;
-  transition: transform var(--transition-fast);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-active {
+  background: rgba(99, 102, 241, 0.25) !important;
+  color: var(--accent-indigo) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
 }
 
 .pdf-empty-state {
