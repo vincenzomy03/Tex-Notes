@@ -85,13 +85,16 @@ export default function App() {
         setRawLog(result.rawLog);
 
         if (result.success && result.pdfBase64) {
-          setCompileStatus('success');
+          setCompileStatus(result.errors && result.errors.length > 0 ? 'error' : 'success');
           setPdfBase64(result.pdfBase64);
-          setErrors([]);
+          setErrors(result.errors || []);
+          if (result.errors && result.errors.length > 0) {
+            setIsBottomOpen(true);
+          }
         } else {
           setCompileStatus('error');
-          setErrors(result.errors);
-          if (result.errors.length > 0) {
+          setErrors(result.errors || []);
+          if (result.errors && result.errors.length > 0) {
             setIsBottomOpen(true);
           }
         }
