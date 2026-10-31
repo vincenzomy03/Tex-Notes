@@ -1,11 +1,10 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-Write-Host "==> Compilazione frontend React..." -ForegroundColor Cyan
-npm run build
+$env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
 
-Write-Host "==> Compilazione backend Rust (Release ottimizzata)..." -ForegroundColor Cyan
-& "$env:USERPROFILE\.cargo\bin\cargo.exe" build --release --manifest-path src-tauri/Cargo.toml
+Write-Host "==> Compilazione app e installer con Tauri CLI (Release ottimizzata con frontend integrato)..." -ForegroundColor Cyan
+npx tauri build
 
 Write-Host "==> Preparazione cartella release/..." -ForegroundColor Cyan
 $releaseDir = "release"
