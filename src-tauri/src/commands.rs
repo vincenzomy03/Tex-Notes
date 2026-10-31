@@ -73,3 +73,70 @@ pub async fn get_available_compilers() -> Vec<CompilerInfo> {
     .await
     .unwrap_or_default()
 }
+
+#[tauri::command]
+pub fn open_external_url(url: String) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        std::process::Command::new("cmd")
+            .args(&["/C", "start", "", &url])
+            .creation_flags(0x08000000)
+            .spawn()
+            .map_err(|e| format!("Impossibile aprire il browser: {}", e))?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = url;
+        Ok(())
+    }
+}
+
+#[tauri::command]
+pub async fn download_and_install_update(
+    app_handle: tauri::AppHandle,
+    download_url: String,
+) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let temp_installer = std::env::temp_dir().join("Tex-Notes-Setup-Update.exe");
+        let temp_installer_str = temp_installer.to_string_lossy().to_string();
+
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            // Download installer using Windows built-in curl.exe with -L for redirects
+            let mut curl_cmd = std::process::Command::new("curl.exe");
+            curl_cmd.creation_flags(0x08000000);
+            curl_cmd
+                .arg("-L")
+                .arg("-f")
+                .arg("-s")
+                .arg("-S")
+                .arg("-o")
+                .arg(&temp_installer_str)
+                .arg(&download_url);
+
+            let status = curl_cmd.status().map_err(|e| format!("Errore di rete: {}", e))?;
+            if !status.success() || !temp_installer.exists() {
+                return Err("Download dell'aggiornamento non riuscito".to_string());
+            }
+
+            // Launch the setup executable
+            let mut run_cmd = std::process::Command::new("cmd");
+            run_cmd.creation_flags(0x08000000);
+            run_cmd.args(&["/C", "start", "", &temp_installer_str]);
+            run_cmd.spawn().map_err(|e| format!("Impossibile avviare l'installer: {}", e))?;
+
+            // Close current application so installer can overwrite files cleanly
+            app_handle.exit(0);
+            Ok(())
+        }
+        #[cfg(not(windows))]
+        {
+            Err("Aggiornamento supportato solo su Windows".to_string())
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}

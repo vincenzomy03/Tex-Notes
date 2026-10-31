@@ -1,6 +1,7 @@
-import React from 'react';
-import { X, Sparkles, ExternalLink, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Sparkles, ExternalLink, CheckCircle, Download, Loader2, AlertCircle } from 'lucide-react';
 import { UpdateInfo } from '../types';
+import { openExternalUrl, downloadAndInstallUpdate } from '../services/updateService';
 
 interface UpdateModalProps {
   isOpen: boolean;
@@ -13,7 +14,35 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
   onClose,
   updateInfo,
 }) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
   if (!isOpen) return null;
+
+  const handleDownloadAndInstall = async () => {
+    if (!updateInfo?.installerDownloadUrl) {
+      if (updateInfo?.releaseUrl) {
+        await openExternalUrl(updateInfo.releaseUrl);
+      }
+      return;
+    }
+
+    setIsUpdating(true);
+    setUpdateError(null);
+    try {
+      await downloadAndInstallUpdate(updateInfo.installerDownloadUrl);
+    } catch (err: any) {
+      console.error('Update failed:', err);
+      setUpdateError(err?.message || String(err));
+      setIsUpdating(false);
+    }
+  };
+
+  const handleOpenReleasePage = async () => {
+    if (updateInfo?.releaseUrl) {
+      await openExternalUrl(updateInfo.releaseUrl);
+    }
+  };
 
   return (
     <div
@@ -32,7 +61,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
       <div
         className="glass-panel"
         style={{
-          width: '420px',
+          width: '440px',
           borderRadius: 'var(--radius-lg)',
           overflow: 'hidden',
           boxShadow: 'var(--shadow-lg)',
@@ -52,7 +81,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             <Sparkles size={16} style={{ color: 'var(--accent-indigo)' }} />
             <span>Aggiornamenti Tex-Notes</span>
           </div>
-          <button className="btn btn-ghost btn-icon" onClick={onClose}>
+          <button className="btn btn-ghost btn-icon" onClick={onClose} disabled={isUpdating}>
             <X size={15} />
           </button>
         </div>
@@ -77,7 +106,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
                     Nuova versione {updateInfo.latestVersion} disponibile!
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-                    Versione attuale: v{updateInfo.currentVersion}
+                    Versione installata: v{updateInfo.currentVersion}
                   </div>
                 </div>
               </div>
@@ -104,22 +133,61 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                <button className="btn" onClick={onClose}>
+              {updateError && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 12,
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid var(--accent-rose)',
+                    color: 'var(--accent-rose)',
+                    fontSize: 11,
+                  }}
+                >
+                  <AlertCircle size={14} />
+                  <span>{updateError}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn" onClick={onClose} disabled={isUpdating}>
                   Chiudi
                 </button>
+
                 {updateInfo.releaseUrl && (
-                  <a
-                    href={updateInfo.releaseUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn btn-primary"
-                    style={{ textDecoration: 'none' }}
+                  <button
+                    className="btn btn-ghost"
+                    onClick={handleOpenReleasePage}
+                    disabled={isUpdating}
+                    title="Apri la pagina della release nel browser"
                   >
                     <ExternalLink size={13} />
-                    <span>Scarica da GitHub</span>
-                  </a>
+                    <span>Apri GitHub</span>
+                  </button>
                 )}
+
+                <button
+                  className="btn btn-primary"
+                  onClick={handleDownloadAndInstall}
+                  disabled={isUpdating}
+                  title="Scarica e installa l'aggiornamento automaticamente"
+                >
+                  {isUpdating ? (
+                    <>
+                      <Loader2 size={13} className="spinning" />
+                      <span>Download in corso...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download size={13} />
+                      <span>Aggiorna ora nell'app</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           ) : (
@@ -129,7 +197,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
                 Tex-Notes è aggiornato!
               </div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
-                Stai utilizzando l'ultima versione disponibile (v{updateInfo?.currentVersion || '1.0.0'}).
+                Stai utilizzando l'ultima versione disponibile (v{updateInfo?.currentVersion || '1.0.1'}).
               </div>
               <button className="btn btn-primary" onClick={onClose}>
                 Ottimo

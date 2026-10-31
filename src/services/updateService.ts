@@ -1,4 +1,5 @@
 import { UpdateInfo } from '../types';
+import { isTauriEnvironment } from './compilerService';
 
 const REPO_OWNER = 'vincenzomy03';
 const REPO_NAME = 'Tex-Notes';
@@ -33,6 +34,16 @@ export async function checkGitHubUpdates(): Promise<UpdateInfo> {
     const releaseUrl = data.html_url || `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases`;
     const releaseNotes = data.body || '';
 
+    // Look for Windows setup installer in release assets
+    const setupAsset = (data.assets || []).find(
+      (a: any) =>
+        (a.name && a.name.endsWith('-setup.exe')) ||
+        (a.name && a.name.endsWith('.exe') && !a.name.includes('portable'))
+    );
+
+    const installerDownloadUrl = setupAsset ? setupAsset.browser_download_url : undefined;
+    const installerFileName = setupAsset ? setupAsset.name : undefined;
+
     const isNewer = compareVersions(latestTag, CURRENT_VERSION) > 0;
 
     return {
@@ -42,6 +53,8 @@ export async function checkGitHubUpdates(): Promise<UpdateInfo> {
       latestVersion: latestTag || CURRENT_VERSION,
       releaseUrl,
       releaseNotes,
+      installerDownloadUrl,
+      installerFileName,
     };
   } catch (err) {
     console.info('Could not reach GitHub Releases API (offline or rate-limited):', err);
@@ -51,6 +64,28 @@ export async function checkGitHubUpdates(): Promise<UpdateInfo> {
       currentVersion: CURRENT_VERSION,
       latestVersion: CURRENT_VERSION,
     };
+  }
+}
+
+export async function openExternalUrl(url: string): Promise<void> {
+  if (isTauriEnvironment()) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('open_external_url', { url });
+      return;
+    } catch (err) {
+      console.warn('Failed to open external url via Tauri command:', err);
+    }
+  }
+  window.open(url, '_blank');
+}
+
+export async function downloadAndInstallUpdate(downloadUrl: string): Promise<void> {
+  if (isTauriEnvironment()) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('download_and_install_update', { downloadUrl });
+  } else {
+    window.open(downloadUrl, '_blank');
   }
 }
 

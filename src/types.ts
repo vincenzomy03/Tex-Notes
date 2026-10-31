@@ -48,6 +48,8 @@ export interface UpdateInfo {
   latestVersion: string;
   releaseUrl?: string;
   releaseNotes?: string;
+  installerDownloadUrl?: string;
+  installerFileName?: string;
 }
 
 export interface FileState {
