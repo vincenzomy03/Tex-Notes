@@ -2,7 +2,7 @@ import { UpdateInfo } from '../types';
 
 const REPO_OWNER = 'vincenzomy03';
 const REPO_NAME = 'Tex-Notes';
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.0.1';
 
 export async function checkGitHubUpdates(): Promise<UpdateInfo> {
   try {
