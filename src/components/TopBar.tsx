@@ -60,7 +60,11 @@ export const TopBar: React.FC<TopBarProps> = ({
     <header className="topbar">
       <div className="topbar-left">
         <div className="topbar-brand">
-          <div className="topbar-brand-icon">T</div>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            style={{ width: 22, height: 22, objectFit: 'contain' }}
+          />
           <span>Tex-Notes</span>
         </div>
 
